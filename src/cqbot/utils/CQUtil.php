@@ -55,6 +55,13 @@ class CQUtil
             }
         }
 
+        // 调用各个模块保存自己的Buffer数据
+        foreach (self::getMods() as $v) {
+            if (in_array("saveValues", get_class_methods($v))) {
+                $v::saveValues();
+            }
+        }
+
         Console::put("Saved files.");
     }
 
