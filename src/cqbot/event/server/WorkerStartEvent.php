@@ -20,7 +20,9 @@ class WorkerStartEvent extends ServerEvent
         //计时器（ms）
         if ($set["swoole_use_tick"] === true) {
             Cache::$scheduler = new Scheduler($this->getFramework(), time());
-            //$timer_id = $server->tick($set["swoole_tick_interval"], [Cache::$scheduler, "tick"]);
+            $timer_id = $server->tick($set["swoole_tick_interval"], [Cache::$scheduler, "tick"]);
+            Cache::set('timer_ids', $timer_id);
+
             Console::info("已在worker #" . $worker_id . " 中成功启动了计时器！计时器间隔：" . $set["swoole_tick_interval"]);
         }
         Console::debug("master_pid = " . $server->master_pid);
