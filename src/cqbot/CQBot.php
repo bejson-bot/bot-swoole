@@ -41,13 +41,33 @@ class CQBot
         }
         if ($this->data["message"] == "")
             return false;
+
+        // 如果消息是 # 开头就表示命令 则取出消息内容
+        $regex = '/^#(?<cmd>[^\s]+)(?:\s+(?<args>[^$]+))?/';
+        $matches = $this->data["message"];
+        if ($this->data["message"]['0'] == '#') {
+            if (preg_match($regex, $this->data["message"], $matches)) {
+                // 拆分参数
+            }
+        }
+        var_dump( $matches);
+        // 遍历每个模块
         foreach (Cache::get("mods") as $v) {
             /** @var ModBase $r */
             $r = new $v($this, $this->data);
-            if ($r->split_execute === true) {
-                $msg = trim($this->data["message"]);
-                $msg = explodeMsg($msg);
-                $r->execute($msg);
+
+            // 检查是否注册了事件
+            if ($hooks = $v::getHooks()) {
+                // 解析出数组则作为命令处理
+                if ( is_array($matches) && is_array($hooks['MessageEvent']) && in_array($matches['cmd'], $hooks['MessageEvent'])) {
+                    // 是否分解参数
+                    if ($r->split_execute === true) {
+                        $matches["args"] = explodeMsg(trim($matches["args"]));
+                    }
+                    $r->command($matches['cmd'], $matches["args"]);
+                }
+            } else if (is_array($hooks['MessageEvent']) && in_array('*', $hooks['MessageEvent'])) {
+                $r->message($this->data["message"]);
             }
         }
         $this->endtime = microtime(true);
