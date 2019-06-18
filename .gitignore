@@ -10,3 +10,4 @@ config/
 cq_data/
 composer.lock
 .DS_Store
+/vendor/
