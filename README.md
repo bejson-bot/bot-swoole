@@ -1,3 +1,11 @@
+# BeJson 群机器人
+
+暂时没有啥可说的, 基于 CQBot-Swoole 开发.
+
+以下是 原文档
+
+
+
 # CQBot-swoole
 
 
