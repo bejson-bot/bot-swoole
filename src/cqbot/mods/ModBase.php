@@ -46,8 +46,6 @@ abstract class ModBase
         return static::$hooks;
     }
 
-    public function execute($it) { }
-
     /**
      * 命令被调用时触发
      *
@@ -64,9 +62,10 @@ abstract class ModBase
      * 收到消息
      *
      * @param string $content 消息内容
+     * @param string $type 消息类型 at / all
      * @return bool 是否拦截
      */
-    public function message(string $content): bool
+    public function message(string $content, string $type): bool
     {
         return false;
     }

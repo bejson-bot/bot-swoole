@@ -33,9 +33,32 @@ class CQUtil
         //加载全局屏蔽的机器人列表
         Cache::set("bots", DP::getJsonData("bots.json"));
 
-        //调用各个模块单独的Buffer数据
-        foreach (self::getMods() as $v) {
-            if (in_array("initValues", get_class_methods($v))) {
+        // 加载各插件注册钩子
+        Cache::$reg_hooks = [
+            // 消息时触发 (还有子事件支持 private.friend.command 或 private.command 类似写法)
+            'message' => [
+                'command' => [], // 指定命令才触发 (#标记) 优先级最高
+                'at' => [], // 机器人被 at 时触发(@标记)
+                'all' => [] // 任何消息都触发 (*标记) 优先级最低
+            ],
+            // 系统提示
+            'notice' => [],
+            // 系统请求
+            'request' => [],
+        ];
+
+        // 调用每个mods
+        foreach (Cache::get("mods") as $v) {
+            // 获取方法列表
+            $methods = array_flip(get_class_methods($v));
+
+            // 整理 hooks
+            if ($hooks = $v::getHooks()) {
+                self::addHooks($v, $hooks);
+            }
+
+            // 初始化 加载数据
+            if (isset($methods["initValues"])) {
                 $v::initValues();
             }
         }
@@ -63,6 +86,57 @@ class CQUtil
         }
 
         Console::put("Saved files.");
+    }
+
+    /**
+     * 整理钩子
+     *
+     * @param string $mod_name 模块名
+     * @param array $hooks 钩子数组
+     */
+    public static function addHooks(string $mod_name,array $hooks)
+    {
+        // 钩子类型列表
+        static $hook_type = [
+            '*' => 'all',
+            '@' => 'at',
+            '#' => 'command'
+        ];
+        // 整理消息钩子
+        if (!empty($hooks['message']) && is_array($hooks['message'])) {
+            foreach ($hooks['message'] as $hook) {
+                $hookd = explode('.', $hook);
+                $type = array_pop($hookd);
+                $hookd[] = isset($hook_type[$type['0']]) ? $hook_type[$type['0']] : 'command';
+                $hook = implode('.', $hookd);
+
+                // 删除头一个的 #
+                $type = ltrim($type, '#');
+
+                // 保存到数组
+                if (isset($hook_type[$type['0']])) {
+                    Cache::$reg_hooks['message'][$hook][] = $mod_name;
+                } else {
+                    Cache::$reg_hooks['message'][$hook][$type][] = $mod_name;
+                }
+            }
+        }
+
+        // 整理 系统提示
+        if (!empty($hooks['notice']) && is_array($hooks['notice'])) {
+            foreach ($hooks['notice'] as $hook) {
+                // 保存到数组
+                Cache::$reg_hooks['notice'][$hook][] = $mod_name;
+            }
+        }
+
+        // 整理 请求消息
+        if (!empty($hooks['request']) && is_array($hooks['request'])) {
+            foreach ($hooks['request'] as $hook) {
+                // 保存到数组
+                Cache::$reg_hooks['request'][$hook][] = $mod_name;
+            }
+        }
     }
 
     /**

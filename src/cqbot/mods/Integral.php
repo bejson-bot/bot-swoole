@@ -11,7 +11,9 @@ class Integral extends ModBase
      * @var array
      */
     protected static $hooks = [
-        'MessageEvent' => ['*', '积分']
+        'message' => ['*', '@', '积分', 'private.状态', 'group.@', 'group.normal.帮助'],
+        'notice' => ['group_admin.set', 'group_decrease.kick'],
+        'request' => ['group.invite']
     ];
 
     /**
@@ -150,6 +152,23 @@ class Integral extends ModBase
         return true;
     }
 
+    /**
+     * 收到消息时的处理
+     *
+     * @param string $content
+     * @param string $type
+     * @return bool
+     */
+    public function message(string $content, string $type): bool
+    {
+        if ($value = (Cache::get($this->key) ?? [])[$this->data['user_id']]) {
+            echo "{$type} => {$content}\n";
+            // 给用户加分
+            $this->add($value);
+        }
+
+        return false;
+    }
 
     /**
      *  查询积分
@@ -177,23 +196,6 @@ class Integral extends ModBase
         } else {
             $this->reply("您的积分余额为: {$info[$this->data['user_id']]}");
         }
-    }
-
-    /**
-     * 收到消息时的处理
-     *
-     * @param string $content
-     * @return bool
-     */
-    public function message(string $content): bool
-    {
-        Console::info($content);
-        if ($value = (Cache::get($this->key) ?? [])[$this->data['user_id']]) {
-            // 给用户加分
-            $this->add($value);
-        }
-
-        return false;
     }
 
     /**

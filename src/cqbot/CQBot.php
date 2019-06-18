@@ -20,6 +20,12 @@ class CQBot
     public $starttime;
     public $endtime;
     public $self_id;
+
+    /**
+     * 谁能告诉我 这个变量是干嘛的
+     *
+     * @var int
+     */
     public $circle;
 
     public function __construct(Framework $framework, $circle, $package) {
@@ -30,46 +36,89 @@ class CQBot
         $this->self_id = $this->data["self_id"];
     }
 
+    /**
+     * 处理消息
+     *
+     * @return bool
+     */
     public function execute() {
         if ($this->circle >= 5) return false;
         if ($this->data === null) return false;
-        if (isset($it["user_id"]) && CQUtil::isRobot($this->data["user_id"])) return false;
-        if (isset($it["group_id"]) && $this->data["group_id"] == Cache::get("admin_group")) {
-            if ($this->getRobotId() != Cache::get("admin_active")) {
-                return false;
-            }
-        }
+
+        // 如果是 机器人的消息 则不处理
+        if (isset($this->data["user_id"]) && CQUtil::isRobot($this->data["user_id"])) return false;
+
+        // 看不懂 暂时注释
+        // 如果是 管理群 且 -> 机器人不是机器人管理员 则 不处理?
+//        if (isset($this->data["group_id"]) && $this->data["group_id"] == Cache::get("admin_group")) {
+//            // 原来是 Cache::get("admin_active")
+//            if ($this->getRobotId() != Cache::get("admin")) {
+//                // return false;
+//            }
+//        }
+
+        // 空消息不回
         if ($this->data["message"] == "")
             return false;
 
         // 如果消息是 # 开头就表示命令 则取出消息内容
         $regex = '/^#(?<cmd>[^\s]+)(?:\s+(?<args>[^$]+))?/';
         $matches = $this->data["message"];
+        $types = []; // 运行的命令列表
         if ($this->data["message"]['0'] == '#') {
-            if (preg_match($regex, $this->data["message"], $matches)) {
-                // 拆分参数
+            if (!preg_match($regex, $this->data["message"], $matches)) {
+                // 获取失败则作为 文本处理
+                $matches = $this->data["message"];
+            } else {
+                $types[] = 'command';
             }
         }
-        var_dump( $matches);
-        // 遍历每个模块
-        foreach (Cache::get("mods") as $v) {
-            /** @var ModBase $r */
-            $r = new $v($this, $this->data);
 
-            // 检查是否注册了事件
-            if ($hooks = $v::getHooks()) {
-                // 解析出数组则作为命令处理
-                if ( is_array($matches) && is_array($hooks['MessageEvent']) && in_array($matches['cmd'], $hooks['MessageEvent'])) {
-                    // 是否分解参数
-                    if ($r->split_execute === true) {
-                        $matches["args"] = explodeMsg(trim($matches["args"]));
-                    }
-                    $r->command($matches['cmd'], $matches["args"]);
-                }
-            } else if (is_array($hooks['MessageEvent']) && in_array('*', $hooks['MessageEvent'])) {
-                $r->message($this->data["message"]);
-            }
+        // 判断是否被 at
+        if (stripos($this->data['message'], CQ::at($this->getRobotId())) !== false) {
+            $types[] = 'at';
         }
+
+        // 所有消息的钩子
+        $types[] = 'all';
+
+        // 遍历所有钩子类型
+        foreach ($types as $type) {
+            // 整理
+            $hookd = [
+                $this->data['message_type'],
+                $this->data['sub_type'],
+                $type
+            ];
+
+            // 遍历每一层
+            $send_ret = false; // 消息是否被拦截(取消继续冒泡)
+            do {
+                $hook_name = implode('.', $hookd);
+
+                // 如果有 定义这个钩子则遍历每个 mod
+                if (!empty(Cache::$reg_hooks['message'][$hook_name])) {
+                    $hooks = $type == 'command' ? Cache::$reg_hooks['message'][$hook_name][$matches['cmd']] ?? [] : Cache::$reg_hooks['message'][$hook_name];
+                    foreach ($hooks as $mod_name) {
+                        $mod_obj = new $mod_name($this, $this->data);
+                        if ($type == 'command') {
+                            $send_ret = $mod_obj->command($matches['cmd'], $matches["args"]);
+                            echo "{$hook_name}.{$matches['cmd']} = ". ($send_ret ? 'true' : 'false') ."\n";
+                        } else {
+                            $send_ret = $mod_obj->message($this->data['message'], $type);
+                            echo "{$hook_name}.message = ". ($send_ret ? 'true' : 'false') ."\n";
+                        }
+
+                        // 拦截消息 阻止其他钩子
+                        if ($send_ret) break 3;
+                    }
+                }
+
+                // 向上一节冒泡
+                array_splice($hookd, -2, 1);
+            } while (count($hookd) >= 1);
+        }
+
         $this->endtime = microtime(true);
         return $this->function_called;
     }

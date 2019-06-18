@@ -31,6 +31,11 @@ class Cache
     /** @var WSConnection[] $connect */
     static $connect = [];
 
+    /**
+     * @var array 注册的钩子列表
+     */
+    static $reg_hooks = [];
+
     static function get($name) { return self::$data[$name] ?? null; }
 
     static function set($name, $value) { self::$data[$name] = $value; }

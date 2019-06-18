@@ -15,7 +15,14 @@ class MessageEvent extends Event
         Cache::$in_count->add(1);
         if (Cache::$data["info_level"] >= 1) {
             $num = CQUtil::getRobotAlias($req["self_id"]);
-            $type = $req["post_type"] == "message" ? ($req["message_type"] == "group" ? "GROUP_MSG" . $num . ":" . $req["group_id"] : ($req["message_type"] == "private" ? "PRIVATE_MSG" . $num : "DISCUSS_MSG" . $num . ":" . $req["discuss_id"])) : strtoupper($req["post_type"]);
+            $type = $req["post_type"] == "message"
+                ? ($req["message_type"] == "group"
+                    ? "GROUP_MSG" . $num . ":" . $req["group_id"]
+                    : ($req["message_type"] == "private"
+                        ? "PRIVATE_MSG" . $num
+                        : "DISCUSS_MSG" . $num . ":" . $req["discuss_id"]))
+                : strtoupper($req["post_type"]);
+
             Console::put(Console::setColor(date("H:i:s"), "green") . Console::setColor(" [$in_count]" . $type, "lightlightblue") . Console::setColor(" " . $req["user_id"], "yellow") . Console::setColor(" > ", "gray") . $req["message"]);
         }
 
