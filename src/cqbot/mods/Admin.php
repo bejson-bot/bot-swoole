@@ -12,6 +12,16 @@
  */
 class Admin extends ModBase
 {
+
+    /**
+     * 注册命令列表
+     *
+     * @var array
+     */
+    protected static $hooks = [
+        'MessageEvent' => ['*']
+    ];
+
     public function __construct(CQBot $main, $data) {
         parent::__construct($main, $data);
         $this->split_execute = true;

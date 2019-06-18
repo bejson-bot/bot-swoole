@@ -31,7 +31,7 @@ class Example extends ModBase
                 $this->reply("pong");
                 return true;
             case "你好":
-                $this->reply("你好，我是CQBot！");
+                $this->reply("你好，我是如花！");
                 return true;
             case "随机数":
                 if (!isset($it[1]) || !isset($it[2])) {
