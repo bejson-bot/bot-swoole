@@ -11,7 +11,7 @@ class Integral extends ModBase
      * @var array
      */
     protected static $hooks = [
-        'message' => ['*', '@', '积分', 'group.奇遇', 'private.状态', 'group.@', 'group.normal.帮助'],
+        'message' => ['*', '@', '积分', 'group.奇遇'],
         'notice' => ['group_admin.set', 'group_decrease.kick'],
         'request' => ['group.invite']
     ];

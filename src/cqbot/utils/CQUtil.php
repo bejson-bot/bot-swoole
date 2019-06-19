@@ -62,6 +62,9 @@ class CQUtil
                 $v::initValues();
             }
         }
+
+        // 查看 钩子注册情况
+        // var_dump(Cache::$reg_hooks);
     }
 
     public static function saveAllFiles() {
