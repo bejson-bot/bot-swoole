@@ -225,6 +225,7 @@ class Integral extends ModBase
      */
     public static function change(int $self_id, int $user_id, int $value, int $group_id = null)
     {
+        var_dump('test');
         Console::tips($self_id, func_get_args());
 
         // 改动 个人积分 还是 群内积分
