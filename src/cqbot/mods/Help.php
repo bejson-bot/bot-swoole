@@ -6,30 +6,73 @@
  * Time: 2:21 PM
  */
 
+/**
+ * Class Help
+ * 帮助功能类 用于功能说明
+ */
 class Help extends ModBase
 {
-    public function __construct(CQBot $main, $data) {
-        parent::__construct($main, $data);
-        $this->split_execute = true;
+    /**
+     * 注册命令列表
+     *
+     * @var array
+     */
+    protected static $hooks = [
+        'message' => ['帮助', '菜单']
+    ];
+
+    /**
+     * @var bool 拆解参数
+     */
+    public $split_execute = true;
+
+    /**
+     * 触发消息事件
+     *
+     * @param string $command
+     * @param mixed $args
+     * @return bool
+     */
+    public function command(string $command, $args): bool
+    {
+
+        switch ($command) {
+            case '帮助':
+            case "菜单":
+                return $this->helpMain($args);
+        }
+
+        return false;
     }
 
-    public function execute($it) {
-        switch ($it[0]) {
-            case "帮助":
-                $msg = "「机器人帮助」";
-                $msg .= "\n随机数：生成一个随机数";
-                $this->reply($msg);
-                return true;
-            case "如何增加机器人功能":
-                $msg = "机器人功能是在框架中src/cqbot/mods/xxx.php文件中编写的。";
-                $msg .= "\nCQBot采用关键词系统，你可以直接像现有源码一样添加case在switch里面，";
-                $msg .= "\n也可以自己新建一个任意名称的Mod名称，例如Entertain.php，你可以在里面编写娱乐功能。";
-                $msg .= "\n你可以直接复制框架中Example.php文件的内容进行编辑。";
-                $msg .= "\n预先封装好的机器人函数均在CQUtil类中，只需直接使用静态方法调用即可！";
-                $msg .= "\n更多示例功能会逐渐添加到框架中，记得更新哦～";
+    /**
+     * 帮助主菜单
+     *
+     * @param $args
+     * @return bool
+     */
+    public function helpMain($args): bool
+    {
+        if (!isset($args['0'])) {
+            $msg = "「机器人帮助」\n";
+            $msg .= "#烟斗: 禁言斗争，消耗积分禁言别人。\n";
+            $msg .= "#禁言: 管理员功能，禁言指定人。\n\n";
+            $msg .= "关于积分机制，请发送 “#帮助 积分”";
+            $this->reply($msg);
+            return true;
+        }
+
+        switch ($args['0']) {
+            case '积分':
+                $msg = "「积分机制」\n";
+                $msg .= "#积分 查询当前积分，首次发送开通积分 随机赠送100-500积分。\n";
+                $msg .= "群内正常聊天，每次+1分，10%的几率触发奇遇。\n";
+                $msg .= "使用 # 开头消息，被视为使用命令，不论是否成功，均-1分";
                 $this->reply($msg);
                 return true;
         }
-        return false;
+
+        return true;
     }
+
 }
