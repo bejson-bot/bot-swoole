@@ -225,8 +225,10 @@ class Integral extends ModBase
      */
     public static function change(int $self_id, int $user_id, int $value, int $group_id = null)
     {
+        Console::tips($self_id, func_get_args());
+
         // 改动 个人积分 还是 群内积分
-        if (!is_null($group_id)) {
+        if ($group_id) {
             $key = sprintf('Integral:%s:%s', $self_id, $group_id);
 
             // 群没开通 或者 此人没开通 都返回 false

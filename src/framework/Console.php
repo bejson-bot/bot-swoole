@@ -81,4 +81,26 @@ class Console
             }
         }
     }
+
+    /**
+     * 发消息到QQ群
+     *
+     * @param int $self_id
+     * @param     $obj
+     */
+    static public function tips(int $self_id, $obj) {
+        // 获取文本型
+        if (!is_string($obj)) {
+            ob_start();
+            var_dump($obj);
+            $obj = ob_get_clean();
+        }
+
+        // 尝试获取目标群
+        return CQAPI::send_group_msg($self_id, ["group_id" => settings()['admin_group'], "message" => $obj]);
+
+    }
+
+
+
 }
