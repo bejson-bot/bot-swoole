@@ -102,6 +102,9 @@ class CQBot
                     foreach ($hooks as $mod_name) {
                         $mod_obj = new $mod_name($this, $this->data);
                         if ($type == 'command') {
+                            if ($mod_obj->split_execute) {
+                                $matches["args"] = explodeMsg($matches["args"]);
+                            }
                             $send_ret = $mod_obj->command($matches['cmd'], $matches["args"]);
                             // echo "{$hook_name}.{$matches['cmd']} = ". ($send_ret ? 'true' : 'false') ."\n";
                         } else {
