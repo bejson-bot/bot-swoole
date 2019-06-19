@@ -12,20 +12,14 @@
  */
 class Admin extends ModBase
 {
-
     /**
      * 注册命令列表
      *
      * @var array
      */
     protected static $hooks = [
-        'message' => ['group.normal.reload']
+        'message' => ['group.normal.reload', 'group.normal.stop', 'group.normal.重载']
     ];
-
-    public function __construct(CQBot $main, $data) {
-        parent::__construct($main, $data);
-        $this->split_execute = true;
-    }
 
     public static function initValues() {
         Cache::set("msg_speed", []);//消息速度列表（存的是时间戳）
@@ -77,6 +71,7 @@ class Admin extends ModBase
         if ($this->data['group_id'] != settings()['admin_group']) return false;
 
         switch ($command) {
+            case '重载':
             case "reload":  //管理员重载代码
                 $this->reply("正在重新启动...");
                 CQUtil::reload();

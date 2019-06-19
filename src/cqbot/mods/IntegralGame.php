@@ -11,7 +11,21 @@ class IntegralGame extends ModBase
      * @var array
      */
     protected static $hooks = [
-        'message' => ['group.烟斗']
+        'message' => ['group.烟斗', 'group.求禁言']
+    ];
+
+    /**
+     * @var array 路由与说明
+     */
+    protected static $routes = [
+        '烟斗' => [
+            'action' => 'pipe',
+            'description' => '消耗积分禁言指定人。'
+        ],
+        '求禁言' => [
+            'action' => 'pray_ban',
+            'description' => '你不试下怎么知道是干啥的？'
+        ],
     ];
 
     /**
@@ -27,13 +41,6 @@ class IntegralGame extends ModBase
      * @var string
      */
     private static $save_file = CONFIG_DIR . "Integral.json";
-
-    /**
-     * 开启分词
-     *
-     * @var bool
-     */
-    public $split_execute = true;
 
     /**
      * 调用缓存 key
@@ -55,51 +62,33 @@ class IntegralGame extends ModBase
 
         // 保存查询 key
         $this->key = sprintf('Integral:%s:%s', $this->data['self_id'], $this->data['group_id']);
-
-    }
-
-    /**
-     * 触发消息事件
-     *
-     * @param string $command
-     * @param mixed $args
-     * @return bool
-     */
-    public function command(string $command, $args): bool
-    {
-        switch ($command) {
-            case '烟斗':
-                $this->pipe($args);
-                break;
-        }
-
-        return true;
     }
 
     /**
      * 烟斗
      * @param $args
+     * @return bool
      */
-    private function pipe($args)
+    private function pipe($args): bool
     {
         // 无参数 则帮助
         if (empty($args) || count($args) < 2) {
             $this->reply("烟斗 使用说明: \n#烟斗 @被禁言的人 [禁言时长(1-10)分钟]\n禁言越久失败率越高，且扣分越多。");
-            return;
+            return true;
         }
 
         // 解析参数一
         $aims = CQ::getCQ($args['0']);
         if (!$aims || $aims['type'] != 'at') {
             $this->reply("烟斗 使用说明: \n#烟斗 @被禁言的人 [禁言时长(1-10)分钟]\n禁言越久失败率越高，且扣分越多。");
-            return;
+            return true;
         }
 
         // 解析参数二
         $time = intval($args['1']);
         if ($time > 10 || $time <= 0) {
             $this->reply("烟斗 使用说明: \n#烟斗 @被禁言的人 [禁言时长(1-10)分钟]\n禁言越久失败率越高，且扣分越多。");
-            return;
+            return true;
         }
 
         // 检查双方是否开通积分
@@ -108,7 +97,7 @@ class IntegralGame extends ModBase
                 '[烟斗] %s 双方必须都开通积分才能参与。',
                 CQ::at($this->data['user_id'])
             ));
-            return;
+            return true;
         }
 
         // 计算禁言成功率
@@ -141,8 +130,6 @@ class IntegralGame extends ModBase
                 $rate,
                 $price
             );
-
-
         } else {
             // 失败的话
             $price = $time; // 禁言失败 费用 = 时间;
@@ -164,7 +151,41 @@ class IntegralGame extends ModBase
 
         // 公布结果
         $this->reply($msg);
+
+        return true;
     }
 
+    /**
+     * 求禁言
+     *
+     * @param $args
+     * @return bool
+     */
+    private function pray_ban($args):bool
+    {
+        // 获取禁言时间
+        $time = intval($args['0'] ?? 10);
+        if (isset($args['1'])) {
+            $end = intval($args['1']);
+            if ($end >= $time) {
+                $time = rand($time, $end);
+            }
+        }
+
+        // 设置禁言
+        CQAPI::set_group_ban($this->getRobotId(), [
+            'group_id' => $this->data['group_id'],
+            'user_id' => $this->data['user_id'],
+            'duration' => $time * 60
+        ]);
+
+        // 设置消息
+        $msg = sprintf(
+            '[求禁言] 添加居然有这等奇怪的事，%s 居然求禁言，那我除了满足他，还能怎么办呢？',
+            CQ::at($this->data['user_id'])
+        );
+
+        $this->reply($msg);
+    }
 
 }

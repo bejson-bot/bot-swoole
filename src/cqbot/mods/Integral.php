@@ -17,11 +17,18 @@ class Integral extends ModBase
     ];
 
     /**
-     * 开启分词(解析参数)
-     *
-     * @var bool
+     * @var array 路由
      */
-    public $split_execute = true;
+    protected static $routes = [
+        '积分' => [
+            'action' => 'query',
+            'description' => '查看积分 / 开通积分功能'
+        ],
+        '奇遇' => [
+            'action' => 'activeAdventure',
+            'description' => '奇遇太少？你本可以主动点...'
+        ]
+    ];
 
     /**
      * 群列表 Key
@@ -59,16 +66,8 @@ class Integral extends ModBase
         $this->key = sprintf('Integral:%s:%s', $this->data['self_id'], $this->data['group_id']);
     }
 
-    // 定时保存数据
-    static function onTick($tick)
-    {
-        if ($tick % 600 == 0) {
-            CQUtil::saveAllFiles();
-        }
-    }
-
     /**
-     * 读取积分数据
+     * 初始化 加载数据
      *
      * @return void
      */
@@ -114,7 +113,7 @@ class Integral extends ModBase
     }
 
     /**
-     * 保存积分
+     * 保存数据
      *
      * @return void
      */
@@ -132,27 +131,6 @@ class Integral extends ModBase
         // 保存到文件
         // $list = []; // 相当于没有积分了
         file_put_contents(CONFIG_DIR . "Integral.json", json_encode($list));
-    }
-
-    /**
-     * 触发消息事件
-     *
-     * @param string $command
-     * @param mixed $args
-     * @return bool
-     */
-    public function command(string $command, $args): bool
-    {
-        switch ($command) {
-            case '积分':
-                $this->query();
-                break;
-            case '奇遇':
-                $this->activeAdventure();
-                break;
-        }
-
-        return true;
     }
 
     /**
@@ -190,9 +168,9 @@ class Integral extends ModBase
     /**
      *  查询积分
      *
-     * @return void
+     * @return bool
      */
-    public function query()
+    public function query($args): bool
     {
         // 整个群的积分
         $info = Cache::get($this->key) ?? [];
@@ -212,6 +190,8 @@ class Integral extends ModBase
         } else {
             $this->reply("[积分] ". CQ::at($this->data['user_id']) ."您的积分余额为: {$info[$this->data['user_id']]}");
         }
+
+        return true;
     }
 
     /**
@@ -336,59 +316,49 @@ class Integral extends ModBase
     /**
      * 主动触发奇遇 有惩罚机制
      */
-    public function activeAdventure()
+    public function activeAdventure($args): bool
     {
         // 随机一个数
-        $value = rand(10, 50);
+        $value = rand(-10, -50);
 
         // 小于这个数 不奇遇 还扣钱
-        if ($value < 25) {
+        if ($value > -25) {
             // 生成事件
             $msg = sprintf(
-                '[主动奇遇] %s 试图触发奇遇，可惜被运气不佳，碰到个老骗子，反被骗走 %d 积分。',
+                '[主动奇遇] %s 试图触发奇遇，可惜被运气不佳，碰到个老骗子，反被骗走 %u 积分。',
                 CQ::at($this->data['user_id']),
-                -$value
+                $value
             );
-
-            // 修改积分
-            self::change($this->data['self_id'], $this->data['user_id'], -$value, $this->data['group_id']);
-
-            // 发送消息
-            $this->reply($msg);
         } else {
             // 正常奇遇
-            $adventure = $this->adventure(30 + $value, false);
+            $adventure = $this->adventure( -$value + 30, false);
 
             if (!$adventure['active']) {
                 // 生成事件
                 $msg = sprintf(
-                    '[主动奇遇] %s 试图触发奇遇，并被老神仙索要 %d 积分，苦苦等待后，居然什么也没发生？',
+                    '[主动奇遇] %s 试图触发奇遇，并被老神仙索要 %u 积分，苦苦等待后，居然什么也没发生？',
                     CQ::at($this->data['user_id']),
-                    -$value
+                    $value
                 );
-
-                // 修改积分
-                self::change($this->data['self_id'], $this->data['user_id'], -$value, $this->data['group_id']);
-
-                // 发送消息
-                $this->reply($msg);
             } else {
                 // 生成事件
                 $msg = sprintf(
-                    '[主动奇遇] %s 试图触发奇遇，并被老神仙索要 %d 积分，苦苦等待后，居然 %s，获得 %+d 积分，最终积分 %+d',
+                    '[主动奇遇] %s 试图触发奇遇，并被老神仙索要 %u 积分，苦苦等待后，居然 %s，获得 %+d 积分，最终积分 %+d',
                     CQ::at($this->data['user_id']),
-                    -$value,
+                    $value,
                     $adventure['info']['msg'],
                     $adventure['add'],
-                    -$value + $adventure['add']
+                    $value += $adventure['add']
                 );
-
-                // 修改积分
-                self::change($this->data['self_id'], $this->data['user_id'], -$value + $adventure['add'], $this->data['group_id']);
-
-                // 发送消息
-                $this->reply($msg);
             }
         }
+
+        // 修改积分
+        self::change($this->data['self_id'], $this->data['user_id'], $value, $this->data['group_id']);
+
+        // 发送消息
+        $this->reply($msg);
+
+        return true;
     }
 }

@@ -23,37 +23,15 @@ class Manage extends ModBase
     ];
 
     /**
-     * @var bool 拆解参数
+     * @var array 路由
      */
-    public $split_execute = true;
-
-    public function __construct(CQBot $main, $data) {
-        parent::__construct($main, $data);
-    }
-
-
-    /**
-     * 触发消息事件
-     *
-     * @param string $command
-     * @param mixed $args
-     * @return bool
-     */
-    public function command(string $command, $args): bool
-    {
-        // 不是机器人管理员不能用
-        if (!$this->isAdmin()) {
-            $this->reply("[提示] 你无权使用此命令.");
-            return true;
-        }
-
-        switch ($command) {
-            case "禁言":
-                return $this->group_ban($args);
-        }
-
-        return false;
-    }
+    protected static $routes = [
+        '禁言' => [
+            'action' => 'group_ban',
+            'description' => '禁言指定用户',
+            'isAdmin' => true
+        ]
+    ];
 
     /**
      * 禁言某人

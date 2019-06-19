@@ -13,36 +13,25 @@
 class Help extends ModBase
 {
     /**
-     * 注册命令列表
-     *
-     * @var array
+     * @var array 注册命令列表
      */
     protected static $hooks = [
-        'message' => ['帮助', '菜单']
+        'message' => ['帮助', '菜单', 'help']
     ];
 
     /**
-     * @var bool 拆解参数
+     * @var array 路由
      */
-    public $split_execute = true;
-
-    /**
-     * 触发消息事件
-     *
-     * @param string $command
-     * @param mixed $args
-     * @return bool
-     */
-    public function command(string $command, $args): bool
-    {
-        switch ($command) {
-            case '帮助':
-            case "菜单":
-                return $this->helpMain($args);
-        }
-
-        return false;
-    }
+    protected static $routes = [
+        '帮助' => [
+            'action' => 'helpMain',
+            'description' => '查看帮助菜单',
+            'alias' => ['菜单', 'help']
+        ],
+        '帮助 积分' => [
+            'description' => '查看关于积分机制的解释'
+        ]
+    ];
 
     /**
      * 帮助主菜单
@@ -53,11 +42,7 @@ class Help extends ModBase
     public function helpMain($args): bool
     {
         if (!isset($args['0'])) {
-            $msg = "「机器人帮助」\n";
-            $msg .= "#烟斗: 禁言斗争，消耗积分禁言别人。\n";
-            $msg .= "#禁言: 管理员功能，禁言指定人。\n\n";
-            $msg .= "关于积分机制，请发送 “#帮助 积分”";
-            $this->reply($msg);
+            $this->reply($this->getHelpText());
             return true;
         }
 
@@ -74,5 +59,68 @@ class Help extends ModBase
 
         return true;
     }
+
+    /**
+     * 遍历模块 获取帮助说明
+     *
+     * @return string
+     */
+    private function getHelpText(): string
+    {
+        // 检查是否 管理员
+        $isAdmin = $this->isAdmin();
+
+        // 遍历所有模块
+        $mods = Cache::get('mods');
+        $content = "「机器人帮助」\n";
+        foreach ($mods as $mod) {
+            $routes = $mod::getRoutes();
+            foreach ($routes as $command => $route) {
+                $content .= sprintf(
+                    "#%s\t\t: %s\n",
+                    $command, //$this->mb_str_pad($command, 6),
+                    $route['description']
+                );
+            }
+        }
+
+        return $content;
+    }
+
+    /**
+     * 字符串中英混合
+     *
+     * @param $input
+     * @param $pad_length
+     * @param string $pad_string
+     * @param int $pad_type
+     * @return string
+     */
+    private function mb_str_pad(string $input, int $pad_length, string $pad_string = " ", int $pad_type = STR_PAD_RIGHT): string
+    {
+        // 计算差
+        $add_len = ceil(($pad_length - strlen($input)) / 9);
+        return $input . sprintf("%'\t{$add_len}s", '');
+
+        // 先计算汉字长度
+        $str_len = strlen($input);
+        $mb_len = mb_strlen($input);
+
+        // 需要补齐的长度
+        $chinese_length = $str_len - ($str_len - $mb_len) / 2;
+        $diff_len = $pad_length - $chinese_length;
+
+        var_dump($chinese_length, $diff_len);
+
+        $pad_str = sprintf("%'\t{$diff_len}s", '');
+
+        return $input . $pad_str;
+        /*
+            $pad_type == STR_PAD_RIGHT ? $input . $pad_str
+                : $pad_type == STR_PAD_LEFT ? $pad_str . $input
+                : substr($input, $diff_len / 2) . $input . substr($input, $diff_len / 2);
+        */
+    }
+
 
 }
