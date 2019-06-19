@@ -128,7 +128,7 @@ class IntegralGame extends ModBase
             CQAPI::set_group_ban($this->getRobotId(), [
                 'group_id' => $this->data['group_id'],
                 'user_id' => $aims['params']['qq'],
-                'duration' => $time
+                'duration' => $time * 60
             ]);
 
             // 创建消息
