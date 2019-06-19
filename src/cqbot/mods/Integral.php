@@ -250,7 +250,7 @@ class Integral extends ModBase
 
                 // 积分清零
                 unset(Cache::get($key)[$user_id]);
-
+var_dump(Cache::get($key)[$user_id]);
                 // 设置禁言
                 CQAPI::set_group_ban($self_id, [
                     'group_id' => $group_id,
