@@ -69,7 +69,7 @@ class IntegralGame extends ModBase
      * @param $args
      * @return bool
      */
-    private function pipe($args): bool
+    public function pipe($args): bool
     {
         // 无参数 则帮助
         if (empty($args) || count($args) < 2) {
@@ -161,7 +161,7 @@ class IntegralGame extends ModBase
      * @param $args
      * @return bool
      */
-    private function pray_ban($args):bool
+    public function pray_ban($args):bool
     {
         // 获取禁言时间
         $time = intval($args['0'] ?? 10);
