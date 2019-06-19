@@ -119,7 +119,7 @@ class IntegralGame extends ModBase
             $price = $time * 2; // 禁言成功 费用 = 时间 * 2
 
             // 先扣钱
-            Integral::change($this->getRobotId(), $this->data['user_id'], $price, $this->data['group_id']);
+            Integral::change($this->getRobotId(), $this->data['user_id'], -$price, $this->data['group_id']);
 
             // 再加钱 先检查
             Integral::change($this->getRobotId(), $aims['params']['qq'], $price, $this->data['group_id']);
