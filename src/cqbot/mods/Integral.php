@@ -11,7 +11,7 @@ class Integral extends ModBase
      * @var array
      */
     protected static $hooks = [
-        'message' => ['*', '@', '积分', 'private.状态', 'group.@', 'group.normal.帮助'],
+        'message' => ['*', '@', '积分', 'group.奇遇', 'private.状态', 'group.@', 'group.normal.帮助'],
         'notice' => ['group_admin.set', 'group_decrease.kick'],
         'request' => ['group.invite']
     ];
@@ -146,6 +146,9 @@ class Integral extends ModBase
         switch ($command) {
             case '积分':
                 $this->query();
+                break;
+            case '奇遇':
+                $this->activeAdventure();
                 break;
         }
 
