@@ -66,6 +66,11 @@ class CQBot
         $matches = $this->data["message"];
         $types = []; // 运行的命令列表
         if ($this->data["message"]['0'] == '#') {
+            // 不管咋地 在群里 # 开头就要扣分
+            if ($this->data['message_type'] == 'group') {
+                echo "--1\n";
+                Integral::change($this->getRobotId(), $this->data['user_id'], -1, $this->data['group_id']);
+            }
             if (!preg_match($regex, $this->data["message"], $matches)) {
                 // 获取失败则作为 文本处理
                 $matches = $this->data["message"];
@@ -102,6 +107,7 @@ class CQBot
                     foreach ($hooks as $mod_name) {
                         $mod_obj = new $mod_name($this, $this->data);
                         if ($type == 'command') {
+                            // 是否要解开参数
                             if ($mod_obj->split_execute) {
                                 $matches["args"] = explodeMsg($matches["args"]);
                             }
