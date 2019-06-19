@@ -103,10 +103,10 @@ class CQBot
                         $mod_obj = new $mod_name($this, $this->data);
                         if ($type == 'command') {
                             $send_ret = $mod_obj->command($matches['cmd'], $matches["args"]);
-                            echo "{$hook_name}.{$matches['cmd']} = ". ($send_ret ? 'true' : 'false') ."\n";
+                            // echo "{$hook_name}.{$matches['cmd']} = ". ($send_ret ? 'true' : 'false') ."\n";
                         } else {
                             $send_ret = $mod_obj->message($this->data['message'], $type);
-                            echo "{$hook_name}.message = ". ($send_ret ? 'true' : 'false') ."\n";
+                            // echo "{$hook_name}.message = ". ($send_ret ? 'true' : 'false') ."\n";
                         }
 
                         // 拦截消息 阻止其他钩子
