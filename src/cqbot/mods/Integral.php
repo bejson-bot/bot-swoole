@@ -250,7 +250,7 @@ class Integral extends ModBase
 
                 // 积分清零
                 Cache::removeKey($key, $user_id);
-var_dump(Cache::get($key)[$user_id]);
+
                 // 设置禁言
                 CQAPI::set_group_ban($self_id, [
                     'group_id' => $group_id,
@@ -258,7 +258,7 @@ var_dump(Cache::get($key)[$user_id]);
                     'duration' => $duration * 60
                 ]);
 
-                // 表示他被禁言了
+                // 发消息说他被禁言了
                 $msg = sprintf(
                     '[负分禁言] %s 积分居然变成了负数，系统以将他积分清零，并禁言 %s 分钟作为惩罚。',
                     CQ::at($user_id),

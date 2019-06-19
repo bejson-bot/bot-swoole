@@ -6,6 +6,15 @@
 class IntegralGame extends ModBase
 {
     /**
+     * 注册命令列表
+     *
+     * @var array
+     */
+    protected static $hooks = [
+        'message' => ['group.烟斗']
+    ];
+
+    /**
      * 群列表 Key
      *
      * @var string
@@ -48,5 +57,40 @@ class IntegralGame extends ModBase
         $this->key = sprintf('Integral:%s:%s', $this->data['self_id'], $this->data['group_id']);
 
     }
+
+    /**
+     * 触发消息事件
+     *
+     * @param string $command
+     * @param mixed $args
+     * @return bool
+     */
+    public function command(string $command, $args): bool
+    {
+        switch ($command) {
+            case '烟斗':
+                $this->pipe($args);
+                break;
+        }
+
+        return true;
+    }
+
+    /**
+     * 烟斗
+     * @param $args
+     */
+    private function pipe($args) {
+        // 无参数则帮助
+        if (empty($args)) {
+            $this->reply("烟斗 使用说明: \n#烟斗 @被禁言的人 禁言时长(1-10)分钟\n 禁言越久失败率越高，且扣分越多。");
+            return;
+        }
+
+        var_dump($args);
+
+
+    }
+
 
 }
