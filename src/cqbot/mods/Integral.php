@@ -248,6 +248,9 @@ class Integral extends ModBase
                     $duration = 60 * 24;
                 }
 
+                // 积分清零
+                unset(Cache::get($key)[$user_id]);
+
                 // 设置禁言
                 CQAPI::set_group_ban($self_id, [
                     'group_id' => $group_id,
