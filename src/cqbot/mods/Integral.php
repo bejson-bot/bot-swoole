@@ -249,7 +249,7 @@ class Integral extends ModBase
                 }
 
                 // 积分清零
-                unset(Cache::get($key)[$user_id]);
+                Cache::get($key)[$user_id] = null;
 var_dump(Cache::get($key)[$user_id]);
                 // 设置禁言
                 CQAPI::set_group_ban($self_id, [
