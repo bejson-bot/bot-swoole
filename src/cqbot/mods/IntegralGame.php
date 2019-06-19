@@ -181,7 +181,7 @@ class IntegralGame extends ModBase
 
         // 设置消息
         $msg = sprintf(
-            '[求禁言] 添加居然有这等奇怪的事，%s 居然求禁言，那我除了满足他，还能怎么办呢？',
+            '[求禁言] 天下居然有这等奇怪的事，%s 居然求禁言，那我除了满足他，还能怎么办呢？',
             CQ::at($this->data['user_id'])
         );
 
