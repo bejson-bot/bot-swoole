@@ -35,7 +35,6 @@ class Help extends ModBase
      */
     public function command(string $command, $args): bool
     {
-
         switch ($command) {
             case '帮助':
             case "菜单":
