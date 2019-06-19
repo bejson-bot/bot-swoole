@@ -73,6 +73,9 @@ class Admin extends ModBase
      */
     public function command(string $command, $args): bool
     {
+        // 必须在管理员群才能用
+        if ($this->data['group_id'] != settings()['admin_group']) return false;
+
         switch ($command) {
             case "reload":  //管理员重载代码
                 $this->reply("正在重新启动...");

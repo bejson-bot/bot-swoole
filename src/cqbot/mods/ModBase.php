@@ -79,4 +79,16 @@ abstract class ModBase
     public function getMessageType() { return $this->data["message_type"]; }
 
     public function getRobotId() { return $this->data["self_id"]; }
+
+    /**
+     * 判断是否是机器人管理员
+     * @param int|null $user_id
+     * @return bool
+     */
+    public function isAdmin(int $user_id = null): bool
+    {
+        $user_id = $user_id ?? $this->data['user_id'];
+
+        return in_array($user_id, settings()['admin']);
+    }
 }
