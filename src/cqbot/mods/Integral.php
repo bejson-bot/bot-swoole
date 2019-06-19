@@ -262,7 +262,7 @@ class Integral extends ModBase
                 $msg = sprintf(
                     '[负分禁言] %s 积分居然变成了负数，系统以将他积分清零，并禁言 %s 分钟作为惩罚。',
                     CQ::at($user_id),
-                    $duration * 60
+                    $duration
                 );
                 CQAPI::send_group_msg($self_id, ["group_id" => $group_id, "message" => $msg]);
             }
