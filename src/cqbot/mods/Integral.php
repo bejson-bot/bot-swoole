@@ -208,9 +208,9 @@ class Integral extends ModBase
             // 保存积分
             Cache::appendKey($this->key, $this->data['user_id'], $initial_score);
 
-            $this->reply("首次开通，赠送您 {$initial_score} 积分。");
+            $this->reply("[积分] ". CQ::at($this->data['user_id']) ."首次开通，赠送您 {$initial_score} 积分。");
         } else {
-            $this->reply("您的积分余额为: {$info[$this->data['user_id']]}");
+            $this->reply("[积分] ". CQ::at($this->data['user_id']) ."您的积分余额为: {$info[$this->data['user_id']]}");
         }
     }
 
