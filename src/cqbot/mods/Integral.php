@@ -338,6 +338,9 @@ class Integral extends ModBase
 
                 // 修改积分
                 self::change($this->data['self_id'], $this->data['user_id'], -$value, $this->data['group_id']);
+
+                // 发送消息
+                $this->reply($msg);
             } else {
                 // 生成事件
                 $msg = sprintf(
@@ -351,6 +354,9 @@ class Integral extends ModBase
 
                 // 修改积分
                 self::change($this->data['self_id'], $this->data['user_id'], -$value + $adventure['add'], $this->data['group_id']);
+
+                // 发送消息
+                $this->reply($msg);
             }
         }
     }
