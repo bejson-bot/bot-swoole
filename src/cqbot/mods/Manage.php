@@ -85,6 +85,8 @@ class Manage extends ModBase
             'user_id' => $aims['params']['qq'],
             'duration' => $time
         ]);
+
+        return true;
     }
 
 
