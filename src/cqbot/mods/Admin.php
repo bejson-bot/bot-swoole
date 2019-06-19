@@ -19,7 +19,7 @@ class Admin extends ModBase
      * @var array
      */
     protected static $hooks = [
-        'MessageEvent' => ['*']
+        'message' => ['group.normal.reload']
     ];
 
     public function __construct(CQBot $main, $data) {
@@ -64,9 +64,16 @@ class Admin extends ModBase
         }
     }
 
-    public function execute($it) {
-        if (!$this->main->isAdmin($this->getUserId())) return false;
-        switch ($it[0]) {
+    /**
+     * 触发消息事件
+     *
+     * @param string $command
+     * @param mixed $args
+     * @return bool
+     */
+    public function command(string $command, $args): bool
+    {
+        switch ($command) {
             case "reload":  //管理员重载代码
                 $this->reply("正在重新启动...");
                 CQUtil::reload();
