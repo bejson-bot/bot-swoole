@@ -225,15 +225,12 @@ class Integral extends ModBase
      */
     public static function change(int $self_id, int $user_id, int $value, int $group_id = null)
     {
-        var_dump('test');
-        Console::tips($self_id, func_get_args());
-
         // 改动 个人积分 还是 群内积分
         if ($group_id) {
             $key = sprintf('Integral:%s:%s', $self_id, $group_id);
 
             // 群没开通 或者 此人没开通 都返回 false
-            if ($info = Cache::get($key)) return false;
+            if (!$info = Cache::get($key)) return false;
             if (!isset($info[$user_id])) return false;
 
             // 对积分加减
