@@ -186,6 +186,8 @@ class IntegralGame extends ModBase
         );
 
         $this->reply($msg);
+
+        return true;
     }
 
 }
