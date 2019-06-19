@@ -80,13 +80,46 @@ class IntegralGame extends ModBase
      * 烟斗
      * @param $args
      */
-    private function pipe($args) {
-        // 无参数则帮助
-        if (empty($args)) {
-            $this->reply("烟斗 使用说明: \n#烟斗 @被禁言的人 禁言时长(1-10)分钟\n 禁言越久失败率越高，且扣分越多。");
+    private function pipe($args)
+    {
+        // 禁言成功率
+        static $rates = [
+            ''
+        ];
+
+        // 无参数 则帮助
+        if (empty($args) || count($args) < 2) {
+            $this->reply("烟斗 使用说明: \n#烟斗 @被禁言的人 [禁言时长(1-10)分钟]\n禁言越久失败率越高，且扣分越多。");
             return;
         }
 
+        // 解析参数一
+        if (!$aims = CQ::getCQ($args['0'])) {
+            $this->reply("烟斗 使用说明: \n#烟斗 @被禁言的人 [禁言时长(1-10)分钟]\n禁言越久失败率越高，且扣分越多。");
+            return;
+        }
+
+        // 解析参数二
+        $time = intval($args['1']);
+        if ($time > 10 || $time <= 0) {
+            $this->reply("烟斗 使用说明: \n#烟斗 @被禁言的人 [禁言时长(1-10)分钟]\n禁言越久失败率越高，且扣分越多。");
+            return;
+        }
+
+        var_dump($aims);
+
+        // 计算禁言成功率
+        if (rand(0, 100) < ((10 - $time) * 10 + 5)) {
+            // 禁言成功
+            $price = $time * 2; // 禁言成功 费用 = 时间 * 2
+
+            // 先扣钱
+            // Integral::change($this->getRobotId(), $, $value)
+            // 再加钱
+
+            // 设置禁言
+
+        }
         var_dump($args);
 
 
