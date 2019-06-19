@@ -240,9 +240,9 @@ class Integral extends ModBase
             if (Cache::get($key)[$user_id] < 0) {
                 if (Cache::get($key)[$user_id] > -10) {
                     // -10分以内 没分禁言2分钟
-                    $duration = Cache::get($key)[$user_id] * 2;
-                } else if (Cache::get($key)[$user_id] > 50) {
-                    // 50分以内 固定禁言一小时
+                    $duration = Cache::get($key)[$user_id] * -2;
+                } else if (Cache::get($key)[$user_id] > -50) {
+                    // -50分以内 固定禁言一小时
                     $duration = 60;
                 } else {
                     $duration = 60 * 24;
