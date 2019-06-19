@@ -236,6 +236,34 @@ class Integral extends ModBase
             // 对积分加减
             Cache::appendKey($key, $user_id, $info[$user_id] + $value);
 
+            // 如果出现负分就禁言
+            if (Cache::get($key)[$user_id] < 0) {
+                if (Cache::get($key)[$user_id] > -10) {
+                    // -10分以内 没分禁言2分钟
+                    $duration = Cache::get($key)[$user_id] * 2;
+                } else if (Cache::get($key)[$user_id] > 50) {
+                    // 50分以内 固定禁言一小时
+                    $duration = 60;
+                } else {
+                    $duration = 60 * 24;
+                }
+
+                // 设置禁言
+                CQAPI::set_group_ban($self_id, [
+                    'group_id' => $group_id,
+                    'user_id' => $user_id,
+                    'duration' => $duration * 60
+                ]);
+
+                // 表示他被禁言了
+                $msg = sprintf(
+                    '[负分禁言] %s 积分居然变成了负数，系统以将他积分清零，并禁言 %s 分钟作为惩罚。',
+                    CQ::at($user_id),
+                    $duration * 60
+                );
+                CQAPI::send_group_msg($self_id, ["group_id" => $group_id, "message" => $msg]);
+            }
+
             return Cache::get($key)[$user_id];
         }
 
