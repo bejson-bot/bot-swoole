@@ -62,9 +62,9 @@ abstract class ModBase
     /**
      * 获取钩子
      *
-     * @return void
+     * @return array
      */
-    public static function getHooks()
+    public static function getHooks(): array
     {
         return static::$hooks;
     }
@@ -99,7 +99,6 @@ abstract class ModBase
         } else {
             // 可能是别名 遍历每一个
             foreach (static::$routes as $key => $info) {
-                var_dump($key, $info);
                 if (is_array($info['alias']) && in_array($command, $info['alias'])) {
                     $route = $info;
                     break;
@@ -114,6 +113,11 @@ abstract class ModBase
         if ($route['isAdmin'] && !$this->isAdmin()) {
             $this->reply("[提示] 你无权使用此命令.");
             return false;
+        }
+
+        // 判断是否有限流
+        if (isset($route['limit']) && $this->rateLimit($route['limit'])) {
+            return true;
         }
 
         // 调用
@@ -155,6 +159,58 @@ abstract class ModBase
     public function getRobotId()
     {
         return $this->data["self_id"];
+    }
+
+    /**
+     * 频率控制
+     *
+     * @param array $limit_info
+     * @return bool
+     */
+    public function rateLimit(array $limit_info)
+    {
+        $key = sprintf(
+            'Limit:%s:%s:%s',
+            $limit_info['bucket_name'],
+            $this->data['group_id'] ?? '',
+            $this->data['user_id']
+        );
+
+        // 查询限流记录
+        if (!($limit = Cache::get($key)) || ($limit['time'] + $limit_info['period'] * 60) < time()) {
+            Cache::set($key, ['time' => time(), 'count' => 1]);
+        } else {
+            // 次数是否超了
+            if ($limit['time'] < $limit_info['max']) {
+                // 没超次数+1
+                Cache::appendKey($key, 'count', $limit_info['max'] + 1);
+            } else {
+                // 超了 不让发
+                $msg = sprintf(
+                    '[频率限制] %s %s。',
+                    CQ::at($this->data['user_id']),
+                    $limit_info['tips'] ?? '亲，你要控几你寂几啊。'
+                );
+                $this->reply($msg);
+
+                // 是否禁言
+                if (!empty($limit_info['ban'])) {
+                    if (is_array($limit_info['ban'])) {
+                        $time = rand($limit_info['ban']['0'], $limit_info['ban']['1']);
+                    } else {
+                        $time = $limit_info['ban'];
+                    }
+                    // 发送禁言
+                    CQAPI::set_group_ban($this->data['self_id'], [
+                        'group_id' => $this->data['group_id'],
+                        'user_id' => $this->data['user_id'],
+                        'duration' => $time * 60
+                    ]);
+                }
+
+                return true;
+            }
+        }
     }
 
     /**

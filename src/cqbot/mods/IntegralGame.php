@@ -20,27 +20,20 @@ class IntegralGame extends ModBase
     protected static $routes = [
         '烟斗' => [
             'action' => 'pipe',
-            'description' => '消耗积分禁言指定人。'
+            'description' => '消耗积分禁言指定人。',
+            // 频率限制
+            'limit' => [
+                'bucket_name' => 'IntegralGame:pipe', // 桶名 可以共享
+                'period' => 1, // 时间段 单位分钟 每几分钟
+                'max' => 1, // 单个时间段内 最多几次,
+                'tips' => '亲，你要控几你寂几啊。'
+            ]
         ],
         '求禁言' => [
             'action' => 'pray_ban',
             'description' => '你不试下怎么知道是干啥的？'
         ],
     ];
-
-    /**
-     * 群列表 Key
-     *
-     * @var string
-     */
-    private static $group_key = 'Integral:GroupList';
-
-    /**
-     * 保存数据的文件名
-     *
-     * @var string
-     */
-    private static $save_file = CONFIG_DIR . "Integral.json";
 
     /**
      * 调用缓存 key
@@ -69,7 +62,7 @@ class IntegralGame extends ModBase
      * @param $args
      * @return bool
      */
-    private function pipe($args): bool
+    public function pipe($args): bool
     {
         // 无参数 则帮助
         if (empty($args) || count($args) < 2) {
@@ -100,10 +93,19 @@ class IntegralGame extends ModBase
             return true;
         }
 
+        // 现在 积分差距也会影响成功率
+        $integral_this = Integral::get($this->data['self_id'], $this->data['user_id'], $this->data['group_id']);
+        $integral_aims = Integral::get($this->data['self_id'], $aims['params']['qq'], $this->data['group_id']);
+        $integral_diff = ceil(($integral_this - $integral_aims) / 10);
+
+        // 随机一个禁言加成
+        $integral_buff = $integral_diff >= 0 ? rand(0, $integral_diff) : rand($integral_diff, 0);
+
         // 计算禁言成功率
         $rand = rand(0, 100);
         $rate = (10 - $time) * 10 + 5;
-        if ($rand < $rate) {
+
+        if (($rand - $integral_buff) < $rate) {
             // 禁言成功
             $price = $time * 2; // 禁言成功 费用 = 时间 * 2
 
@@ -122,11 +124,12 @@ class IntegralGame extends ModBase
 
             // 创建消息
             $msg = sprintf(
-                '[烟斗] %s 试图禁言 %s %s分钟，并掷出 %s，成功率 %s，最终如愿以偿，消耗积分 %s。',
+                '[烟斗] %s 试图禁言 %s %s分钟，并掷出 %s (+Buff %s)，成功率 %s，最终如愿以偿，消耗积分 %s。',
                 CQ::at($this->data['user_id']),
                 CQ::at($aims['params']['qq']),
                 $time,
                 $rand,
+                $integral_buff,
                 $rate,
                 $price
             );
@@ -135,15 +138,16 @@ class IntegralGame extends ModBase
             $price = $time; // 禁言失败 费用 = 时间;
 
             // 先扣钱
-            Integral::change($this->getRobotId(), $this->data['user_id'], $price, $this->data['group_id']);
+            Integral::change($this->getRobotId(), $this->data['user_id'], -$price, $this->data['group_id']);
 
             // 创建消息
             $msg = sprintf(
-                '[烟斗] %s 试图禁言 %s %s分钟，并掷出 %s，成功率 %s，非常可惜，未能如愿，损失积分 %s。',
+                '[烟斗] %s 试图禁言 %s %s分钟，并掷出 %s (+Buff %s)，成功率 %s，非常可惜，未能如愿，损失积分 %s。',
                 CQ::at($this->data['user_id']),
                 CQ::at($aims['params']['qq']),
                 $time,
                 $rand,
+                $integral_buff,
                 $rate,
                 $price
             );
@@ -161,12 +165,14 @@ class IntegralGame extends ModBase
      * @param $args
      * @return bool
      */
-    private function pray_ban($args):bool
+    public function pray_ban($args):bool
     {
         // 获取禁言时间
         $time = intval($args['0'] ?? 10);
+        if ($time <= 1) $time = 1;
         if (isset($args['1'])) {
             $end = intval($args['1']);
+            if ($end <= $time) $end = $time + 10;
             if ($end >= $time) {
                 $time = rand($time, $end);
             }
@@ -181,11 +187,13 @@ class IntegralGame extends ModBase
 
         // 设置消息
         $msg = sprintf(
-            '[求禁言] 添加居然有这等奇怪的事，%s 居然求禁言，那我除了满足他，还能怎么办呢？',
+            '[求禁言] 天下居然有这等奇怪的事，%s 居然求禁言，那我除了满足他，还能怎么办呢？',
             CQ::at($this->data['user_id'])
         );
 
         $this->reply($msg);
+
+        return true;
     }
 
 }

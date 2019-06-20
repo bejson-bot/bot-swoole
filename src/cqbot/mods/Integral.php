@@ -26,7 +26,15 @@ class Integral extends ModBase
         ],
         '奇遇' => [
             'action' => 'activeAdventure',
-            'description' => '奇遇太少？你本可以主动点...'
+            'description' => '奇遇太少？你本可以主动点...',
+            // 频率限制
+            'limit' => [
+                'bucket_name' => 'Integral:activeAdventure', // 桶名 可以共享
+                'period' => 1, // 时间段 单位分钟 每几分钟
+                'max' => 1, // 单个时间段内 最多几次,
+                'tips' => '亲，你要控几你寂几啊。',
+                'ban' => 5, // 频率快了 禁言丫
+            ]
         ]
     ];
 
@@ -172,11 +180,42 @@ class Integral extends ModBase
      */
     public function query($args): bool
     {
+        // 禁言频率限制的key
+        $limit_key = sprintf('Limit:Integral:%s:%s', $this->data['group_id'], $this->data['user_id']);
+
+        if (!empty($args) && $args['0'] == '禁言换开通') {
+            // 随机禁言时间
+            $time = rand(1 * 60, 5 * 60);
+            CQAPI::set_group_ban($this->data['self_id'], [
+                'group_id' => $this->data['group_id'],
+                'user_id' => $this->data['user_id'],
+                'duration' => $time * 60
+            ]);
+
+            // 取消限制
+            Cache::unset($limit_key);
+
+            //发送消息
+            $this->reply(sprintf('[积分] %s 亲，已为您解除禁言限制呢，等下再开通下积分试试？', CQ::at($this->data['user_id'])));
+        }
+
+
         // 整个群的积分
         $info = Cache::get($this->key) ?? [];
 
+
         // 是否未开通积分
         if (!(Cache::get($this->key) ?? [])[$this->data['user_id']]) {
+            // 如果今天开过就不行了
+            if (($date = Cache::get($limit_key)) && $date == date('Y-m-d')) {
+                $msg = sprintf(
+                    "[积分] %s 亲，您每天只能开通一次积分功能。\n 发送 “#积分 禁言换开通” 使用随机禁言1-5小时换取开通权限",
+                    CQ::at($this->data['user_id'])
+                );
+                $this->reply($msg);
+                return true;
+            }
+
             // 赠送积分
             $initial_score = rand(100, 500);
 
@@ -185,6 +224,9 @@ class Integral extends ModBase
 
             // 保存积分
             Cache::appendKey($this->key, $this->data['user_id'], $initial_score);
+
+            // 锁定今日开通
+            Cache::set($limit_key, date('Y-m-d', time()));
 
             $this->reply("[积分] ". CQ::at($this->data['user_id']) ."首次开通，赠送您 {$initial_score} 积分。");
         } else {
@@ -251,6 +293,21 @@ class Integral extends ModBase
         }
 
         return false;
+    }
+
+    /**
+     * 获取用户积分
+     *
+     * @param int      $self_id
+     * @param int      $user_id
+     * @param int|null $group_id
+     * @return int
+     */
+    public static function get(int $self_id, int $user_id, int $group_id = null)
+    {
+        $key = sprintf('Integral:%s:%s', $self_id, $group_id ?? '');
+
+        return (Cache::get($key) ?? [])[$user_id];
     }
 
     /**
@@ -325,9 +382,9 @@ class Integral extends ModBase
         if ($value > -25) {
             // 生成事件
             $msg = sprintf(
-                '[主动奇遇] %s 试图触发奇遇，可惜被运气不佳，碰到个老骗子，反被骗走 %u 积分。',
+                '[主动奇遇] %s 试图触发奇遇，可惜被运气不佳，碰到个老骗子，反被骗走 %d 积分。',
                 CQ::at($this->data['user_id']),
-                $value
+                abs($value)
             );
         } else {
             // 正常奇遇
@@ -336,16 +393,16 @@ class Integral extends ModBase
             if (!$adventure['active']) {
                 // 生成事件
                 $msg = sprintf(
-                    '[主动奇遇] %s 试图触发奇遇，并被老神仙索要 %u 积分，苦苦等待后，居然什么也没发生？',
+                    '[主动奇遇] %s 试图触发奇遇，并被老神仙索要 %d 积分，苦苦等待后，居然什么也没发生？',
                     CQ::at($this->data['user_id']),
-                    $value
+                    abs($value)
                 );
             } else {
                 // 生成事件
                 $msg = sprintf(
-                    '[主动奇遇] %s 试图触发奇遇，并被老神仙索要 %u 积分，苦苦等待后，居然 %s，获得 %+d 积分，最终积分 %+d',
+                    '[主动奇遇] %s 试图触发奇遇，并被老神仙索要 %d 积分，苦苦等待后，居然 %s，获得 %+d 积分，最终积分 %+d',
                     CQ::at($this->data['user_id']),
-                    $value,
+                    abs($value),
                     $adventure['info']['msg'],
                     $adventure['add'],
                     $value += $adventure['add']
