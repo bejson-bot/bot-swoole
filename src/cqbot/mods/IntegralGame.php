@@ -29,20 +29,6 @@ class IntegralGame extends ModBase
     ];
 
     /**
-     * 群列表 Key
-     *
-     * @var string
-     */
-    private static $group_key = 'Integral:GroupList';
-
-    /**
-     * 保存数据的文件名
-     *
-     * @var string
-     */
-    private static $save_file = CONFIG_DIR . "Integral.json";
-
-    /**
      * 调用缓存 key
      *
      * @var string
@@ -176,8 +162,10 @@ class IntegralGame extends ModBase
     {
         // 获取禁言时间
         $time = intval($args['0'] ?? 10);
+        if ($time <= 1) $time = 1;
         if (isset($args['1'])) {
             $end = intval($args['1']);
+            if ($end <= $time) $end = $time + 10;
             if ($end >= $time) {
                 $time = rand($time, $end);
             }

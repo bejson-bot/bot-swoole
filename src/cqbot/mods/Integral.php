@@ -26,7 +26,15 @@ class Integral extends ModBase
         ],
         '奇遇' => [
             'action' => 'activeAdventure',
-            'description' => '奇遇太少？你本可以主动点...'
+            'description' => '奇遇太少？你本可以主动点...',
+            // 频率限制
+            'limit' => [
+                'bucket_name' => 'Integral:activeAdventure', // 桶名 可以共享
+                'period' => 1, // 时间段 单位分钟 每几分钟
+                'max' => 1, // 单个时间段内 最多几次,
+                'tips' => '亲，你要控几你寂几啊。',
+                'ban' => 5, // 频率快了 禁言丫
+            ]
         ]
     ];
 
