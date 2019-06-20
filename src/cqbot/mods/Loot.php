@@ -25,7 +25,7 @@ class Loot extends ModBase
      */
     protected static $routes = [
         '抢劫' => [
-            'action' => 'loot',
+            'action' => 'lootMain',
             'description' => '抢劫 使用说明: \n#抢劫 @被抢劫的人。',
             'alias' => ['打劫'],
             // 频率限制
@@ -43,7 +43,7 @@ class Loot extends ModBase
      * @param $args
      * @return bool
      */
-    public function loot($args): bool
+    public function lootMain($args): bool
     {
         // 无参数 则帮助
         if (empty($args) || count($args) < 1) {
