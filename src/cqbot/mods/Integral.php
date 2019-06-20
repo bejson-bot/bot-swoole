@@ -325,9 +325,9 @@ class Integral extends ModBase
         if ($value > -25) {
             // 生成事件
             $msg = sprintf(
-                '[主动奇遇] %s 试图触发奇遇，可惜被运气不佳，碰到个老骗子，反被骗走 %u 积分。',
+                '[主动奇遇] %s 试图触发奇遇，可惜被运气不佳，碰到个老骗子，反被骗走 %d 积分。',
                 CQ::at($this->data['user_id']),
-                $value
+                abs($value)
             );
         } else {
             // 正常奇遇
@@ -336,16 +336,16 @@ class Integral extends ModBase
             if (!$adventure['active']) {
                 // 生成事件
                 $msg = sprintf(
-                    '[主动奇遇] %s 试图触发奇遇，并被老神仙索要 %u 积分，苦苦等待后，居然什么也没发生？',
+                    '[主动奇遇] %s 试图触发奇遇，并被老神仙索要 %d 积分，苦苦等待后，居然什么也没发生？',
                     CQ::at($this->data['user_id']),
-                    $value
+                    abs($value)
                 );
             } else {
                 // 生成事件
                 $msg = sprintf(
-                    '[主动奇遇] %s 试图触发奇遇，并被老神仙索要 %u 积分，苦苦等待后，居然 %s，获得 %+d 积分，最终积分 %+d',
+                    '[主动奇遇] %s 试图触发奇遇，并被老神仙索要 %d 积分，苦苦等待后，居然 %s，获得 %+d 积分，最终积分 %+d',
                     CQ::at($this->data['user_id']),
-                    $value,
+                    abs($value),
                     $adventure['info']['msg'],
                     $adventure['add'],
                     $value += $adventure['add']
