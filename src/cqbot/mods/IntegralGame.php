@@ -100,10 +100,19 @@ class IntegralGame extends ModBase
             return true;
         }
 
+        // 现在 积分差距也会影响成功率
+        $integral_this = Integral::get($this->data['self_id'], $this->data['user_id'], $this->data['group_id']);
+        $integral_aims = Integral::get($this->data['self_id'], $aims['params']['qq'], $this->data['group_id'])
+        $integral_diff = ceil(($integral_this - $integral_aims) / 10);
+
+        // 随机一个禁言加成
+        $integral_buff = $integral_diff >= 0 ? rand(0, $integral_diff) : rand($integral_diff, 0);
+
         // 计算禁言成功率
         $rand = rand(0, 100);
         $rate = (10 - $time) * 10 + 5;
-        if ($rand < $rate) {
+
+        if (($rand - $integral_buff) < $rate) {
             // 禁言成功
             $price = $time * 2; // 禁言成功 费用 = 时间 * 2
 
@@ -122,11 +131,12 @@ class IntegralGame extends ModBase
 
             // 创建消息
             $msg = sprintf(
-                '[烟斗] %s 试图禁言 %s %s分钟，并掷出 %s，成功率 %s，最终如愿以偿，消耗积分 %s。',
+                '[烟斗] %s 试图禁言 %s %s分钟，并掷出 %s (+Buff %s)，成功率 %s，最终如愿以偿，消耗积分 %s。',
                 CQ::at($this->data['user_id']),
                 CQ::at($aims['params']['qq']),
                 $time,
                 $rand,
+                $integral_buff,
                 $rate,
                 $price
             );
@@ -139,11 +149,12 @@ class IntegralGame extends ModBase
 
             // 创建消息
             $msg = sprintf(
-                '[烟斗] %s 试图禁言 %s %s分钟，并掷出 %s，成功率 %s，非常可惜，未能如愿，损失积分 %s。',
+                '[烟斗] %s 试图禁言 %s %s分钟，并掷出 %s (+Buff %s)，成功率 %s，非常可惜，未能如愿，损失积分 %s。',
                 CQ::at($this->data['user_id']),
                 CQ::at($aims['params']['qq']),
                 $time,
                 $rand,
+                $integral_buff,
                 $rate,
                 $price
             );

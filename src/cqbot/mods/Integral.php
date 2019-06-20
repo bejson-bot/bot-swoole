@@ -254,6 +254,21 @@ class Integral extends ModBase
     }
 
     /**
+     * 获取用户积分
+     *
+     * @param int      $self_id
+     * @param int      $user_id
+     * @param int|null $group_id
+     * @return int
+     */
+    public static function get(int $self_id, int $user_id, int $group_id = null)
+    {
+        $key = sprintf('Integral:%s:%s', $self_id, $group_id ?? '');
+
+        return (Cache::get($key) ?? [])[$user_id];
+    }
+
+    /**
      * 奇遇事件
      *
      * @param int  $max
