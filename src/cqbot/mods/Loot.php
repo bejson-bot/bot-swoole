@@ -68,7 +68,7 @@ class Loot extends ModBase
         }
 
         // 生成抢劫数量
-        $rand = rand(-100, 100);
+        $rand = rand(-35, 35);
 
         if ($rand  > 0) {
 
