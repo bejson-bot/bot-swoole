@@ -135,7 +135,7 @@ class IntegralGame extends ModBase
             $price = $time; // 禁言失败 费用 = 时间;
 
             // 先扣钱
-            Integral::change($this->getRobotId(), $this->data['user_id'], $price, $this->data['group_id']);
+            Integral::change($this->getRobotId(), $this->data['user_id'], -$price, $this->data['group_id']);
 
             // 创建消息
             $msg = sprintf(
