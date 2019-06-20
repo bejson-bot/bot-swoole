@@ -180,11 +180,42 @@ class Integral extends ModBase
      */
     public function query($args): bool
     {
+        // 禁言频率限制的key
+        $limit_key = sprintf('Limit:Integral:%s:%s', $this->data['group_id'], $this->data['user_id']);
+
+        if (!empty($args) && $args['0'] == '禁言换开通') {
+            // 随机禁言时间
+            $time = rand(1 * 60, 5 * 60);
+            CQAPI::set_group_ban($this->data['self_id'], [
+                'group_id' => $this->data['group_id'],
+                'user_id' => $this->data['user_id'],
+                'duration' => $time * 60
+            ]);
+
+            // 取消限制
+            Cache::unset($limit_key);
+
+            //发送消息
+            $this->reply(sprintf('[积分] %s 亲，已为您解除禁言限制呢，等下再开通下积分试试？', CQ::at($this->data['user_id'])));
+        }
+
+
         // 整个群的积分
         $info = Cache::get($this->key) ?? [];
 
+
         // 是否未开通积分
         if (!(Cache::get($this->key) ?? [])[$this->data['user_id']]) {
+            // 如果今天开过就不行了
+            if (($date = Cache::get($limit_key)) && $date == date('Y-m-d')) {
+                $msg = sprintf(
+                    "[积分] %s 亲，您每天只能开通一次积分功能。\n 发送 “#积分 禁言换开通” 使用随机禁言1-5小时换取开通权限",
+                    CQ::at($this->data['user_id'])
+                );
+                $this->reply($msg);
+                return true;
+            }
+
             // 赠送积分
             $initial_score = rand(100, 500);
 
@@ -193,6 +224,9 @@ class Integral extends ModBase
 
             // 保存积分
             Cache::appendKey($this->key, $this->data['user_id'], $initial_score);
+
+            // 锁定今日开通
+            Cache::set($limit_key, date('Y-m-d', time()));
 
             $this->reply("[积分] ". CQ::at($this->data['user_id']) ."首次开通，赠送您 {$initial_score} 积分。");
         } else {
