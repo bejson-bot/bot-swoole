@@ -59,7 +59,7 @@ class Loot extends ModBase
         }
 
         // 检查双方是否开通积分
-        if (!(Cache::get($this->key) ?? [])[$this->data['user_id']] ||!(Cache::get($this->key) ?? [])[$aims['params']['qq']]) {
+        if (!Integral::get($this->data['self_id'], $this->data['user_id'], $this->data['group_id']) || !Integral::get($this->data['self_id'], $aims['params']['qq'], $this->data['group_id'])) {
             $this->reply(sprintf(
                 '[抢劫] %s 双方必须都开通积分才能参与。',
                 CQ::at($this->data['user_id'])
