@@ -20,7 +20,14 @@ class IntegralGame extends ModBase
     protected static $routes = [
         '烟斗' => [
             'action' => 'pipe',
-            'description' => '消耗积分禁言指定人。'
+            'description' => '消耗积分禁言指定人。',
+            // 频率限制
+            'limit' => [
+                'bucket_name' => 'IntegralGame:pipe', // 桶名 可以共享
+                'period' => 1, // 时间段 单位分钟 每几分钟
+                'max' => 1, // 单个时间段内 最多几次,
+                'tips' => '亲，你要控几你寂几啊。'
+            ]
         ],
         '求禁言' => [
             'action' => 'pray_ban',
