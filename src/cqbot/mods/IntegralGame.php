@@ -102,7 +102,7 @@ class IntegralGame extends ModBase
 
         // 现在 积分差距也会影响成功率
         $integral_this = Integral::get($this->data['self_id'], $this->data['user_id'], $this->data['group_id']);
-        $integral_aims = Integral::get($this->data['self_id'], $aims['params']['qq'], $this->data['group_id'])
+        $integral_aims = Integral::get($this->data['self_id'], $aims['params']['qq'], $this->data['group_id']);
         $integral_diff = ceil(($integral_this - $integral_aims) / 10);
 
         // 随机一个禁言加成
