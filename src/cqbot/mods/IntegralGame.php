@@ -11,7 +11,7 @@ class IntegralGame extends ModBase
      * @var array
      */
     protected static $hooks = [
-        'message' => ['group.烟斗', 'group.求禁言']
+        'message' => ['group.烟斗', 'group.求禁言', 'group.抢劫', 'group.打劫']
     ];
 
     /**
@@ -33,6 +33,18 @@ class IntegralGame extends ModBase
             'action' => 'pray_ban',
             'description' => '你不试下怎么知道是干啥的？'
         ],
+        '抢劫' => [
+            'action' => 'loot',
+            'description' => '尝试对指定人抢劫。',
+            'alias' => ['打劫'],
+            // 频率限制
+            'limit' => [
+                'bucket_name' => 'IntegralGame:Loot', // 桶名 可以共享
+                'period' => 3, // 时间段 单位分钟 每几分钟
+                'max' => 1, // 单个时间段内 最多几次,
+                'tips' => '你丫胆子忒大~!'
+            ]
+        ]
     ];
 
     /**
@@ -191,6 +203,94 @@ class IntegralGame extends ModBase
             CQ::at($this->data['user_id'])
         );
 
+        $this->reply($msg);
+
+        return true;
+    }
+
+    /**
+     * 烟斗
+     * @param $args
+     * @return bool
+     */
+    public function loot($args): bool
+    {
+        // 无参数 则帮助
+        if (empty($args) || count($args) < 1) {
+            $this->reply("抢劫 使用说明: \n#抢劫 @被抢劫的人\n抢劫积分是0-100随机的。");
+            return true;
+        }
+
+        // 解析参数
+        $aims = CQ::getCQ($args['0']);
+        if (!$aims || $aims['type'] != 'at') {
+            $this->reply("抢劫 使用说明: \n#抢劫 @被抢劫的人\n抢劫积分是0-100随机的。");
+            return true;
+        }
+
+        // 检查双方是否开通积分
+        if (!Integral::get($this->data['self_id'], $this->data['user_id'], $this->data['group_id']) || !Integral::get($this->data['self_id'], $aims['params']['qq'], $this->data['group_id'])) {
+            $this->reply(sprintf(
+                '[抢劫] %s 双方必须都开通积分才能参与。',
+                CQ::at($this->data['user_id'])
+            ));
+            return true;
+        }
+
+        // 生成抢劫数量
+        $rand = rand(-50, 20);
+
+        if ($rand  > 0) { // 抢劫成功
+            // 先抢劫
+            Integral::change($this->getRobotId(), $aims['params']['qq'], -$rand, $this->data['group_id']);
+
+            // 再加钱
+            Integral::change($this->getRobotId(), $this->data['user_id'], $rand, $this->data['group_id']);
+
+            // 创建消息
+            $msg = sprintf(
+                '[抢劫] %s 试图抢劫 %s 的积分，通过迷晕对方，成功抢劫了 %s 积分。',
+                CQ::at($this->data['user_id']),
+                CQ::at($aims['params']['qq']),
+                $rand
+            );
+        } else { // 失败的话
+            // 先扣自己的钱
+            Integral::change($this->getRobotId(), $this->data['user_id'], $rand, $this->data['group_id']);
+
+            // 再给对方加钱
+            Integral::change($this->getRobotId(), $aims['params']['qq'], -$rand, $this->data['group_id']);
+
+            // 创建消息
+            $msg = sprintf(
+                '[抢劫] %s 试图抢劫 %s 的积分，没能成功，反被抢劫了 %s 积分，并被对方爆了菊花。',
+                CQ::at($this->data['user_id']),
+                CQ::at($aims['params']['qq']),
+                -$rand
+            );
+
+            // 尝试触发监狱加成
+            $time = rand(-50, 100);
+            if ($time > 0) {
+                // 设置禁言
+                CQAPI::set_group_ban($this->getRobotId(), [
+                    'group_id' => $this->data['group_id'],
+                    'user_id' => $this->data['user_id'],
+                    'duration' => $time * 60
+                ]);
+
+                // 创建消息
+                $msg = sprintf(
+                    '[抢劫] %s 试图抢劫 %s 的积分，不巧的是当场被警察抓获，损失了 %s 积分不说，还被狱友们爆了轮流享用菊花。',
+                    CQ::at($this->data['user_id']),
+                    CQ::at($aims['params']['qq']),
+                    -$rand
+                );
+            }
+
+        }
+
+        // 公布结果
         $this->reply($msg);
 
         return true;
