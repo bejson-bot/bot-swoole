@@ -180,9 +180,8 @@ class Help extends ModBase
 
         // 如果不是管理员 就保存关闭时间再判断是否够三个人
         $key = 'Core:BotClose:Vote:' . $this->data['group_id'];
-        $info = [];
+        $info = $default = ['type' => $status, 'time' => time(), 'to_time' => $time,'users' => [], 'num' => 0]; // 默认数据
         if (!$this->isAdmin()) {
-            $default = ['type' => $status, 'time' => time(), 'to_time' => $time,'users' => [], 'num' => 0]; // 默认数据
             $info = Cache::get($key, $default);
 
             // 投票十分钟内有效
