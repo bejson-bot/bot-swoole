@@ -65,8 +65,8 @@ class SignIn extends ModBase
         }
         
         // 添加限制
-        $key = 'SingIn:' . $this->data['user_id'];
-        if (($time = Cache::get($key, 0)) && $time >= strtotime(date('Y-m-d'))) {
+        $key = sprintf('SingIn:%s', $this->data['group_id']);
+        if (($time = Cache::get($key, [])[$this->data['user_id']]) && $time >= strtotime(date('Y-m-d'))) {
             $this->reply(sprintf(
                 '[签到] %s 今天已经签过到了呢。',
                 CQ::at($this->data['user_id'])
@@ -81,7 +81,8 @@ class SignIn extends ModBase
         Integral::change($this->getRobotId(), $this->data['user_id'], $rand, $this->data['group_id']);
 
         // 记录签到
-        Cache::set($key, time());
+        if (Cache::get($key, flase) === false) Cache::set($key, []);
+        Cache::appendKey($key, $this->data['user_id'], time());
 
         // 创建消息
         $msg = sprintf(
