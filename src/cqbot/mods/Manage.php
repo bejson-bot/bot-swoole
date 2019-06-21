@@ -65,7 +65,7 @@ class Manage extends ModBase
         ]);
 
         // 补回积分
-        Integral::change($this->data['self_id'], $this->data['user_id'], 10);
+        Integral::change($this->data['self_id'], $this->data['user_id'], 1);
 
         return true;
     }
