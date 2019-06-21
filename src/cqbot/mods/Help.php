@@ -90,7 +90,7 @@ class Help extends ModBase
         }
 
         // 先尝试替换 年月日
-        $time = str_ireplace(['年', '月', '日', '时', '分'], [' year', ' month', 'day', ' hour', ' min'], $time);
+        $time = str_ireplace(['年', '月', '天', '时', '分'], [' year', ' month', 'day', ' hour', ' min'], $time);
         $time = strtotime($time);
         if ($time <= time()) {
             $this->reply("[关闭机器人] 时间格式错误，不是正确的时间格式或不是未来时间\n正确格式: 2019-06-21 19:00 或者 1天");
