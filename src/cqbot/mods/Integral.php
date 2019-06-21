@@ -166,7 +166,11 @@ class Integral extends ModBase
                 }
 
                 // 尝试触发奇遇
-                $this->adventure();
+                $info = $this->adventure();
+                if (!$info['active']) {
+                    // 没触发奇遇 加分
+                    self::change($this->data['self_id'], $this->data['user_id'], 1, $this->data['group_id']);
+                }
             }
         }
 
