@@ -81,7 +81,7 @@ class SignIn extends ModBase
         Integral::change($this->getRobotId(), $this->data['user_id'], $rand, $this->data['group_id']);
 
         // 记录签到
-        if (Cache::get($key, flase) === false) Cache::set($key, []);
+        if (Cache::get($key, false) === false) Cache::set($key, []);
         Cache::appendKey($key, $this->data['user_id'], time());
 
         // 创建消息
