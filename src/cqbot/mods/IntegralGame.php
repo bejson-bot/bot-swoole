@@ -209,7 +209,7 @@ class IntegralGame extends ModBase
     }
 
     /**
-     * 烟斗
+     * 打劫
      * @param $args
      * @return bool
      */
@@ -270,7 +270,7 @@ class IntegralGame extends ModBase
             );
 
             // 尝试触发监狱加成(禁言)
-            $time = rand(-50, 100);
+            $time = rand(-50, 10);
             if ($time > 0) {
                 // 设置禁言
                 CQAPI::set_group_ban($this->getRobotId(), [
