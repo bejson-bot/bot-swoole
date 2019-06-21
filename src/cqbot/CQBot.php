@@ -61,6 +61,16 @@ class CQBot
         if ($this->data["message"] == "")
             return false;
 
+        // 如果设置的关闭就不回复了
+        if (Cache::get('Core::BotClose', 0) > time()) {
+            return false;
+        }
+
+        // 如果是群里 还要判断这个群有没有关闭
+        if ($this->data['message_type'] == 'group' && Cache::get('Core::BotClose:' . $this->data['group_id'], 0) > time()) {
+            return false;
+        }
+
         // 如果消息是 # 开头就表示命令 则取出消息内容
         $regex = '/^#(?<cmd>[^\s]+)(?:\s+(?<args>[^$]+))?/';
         $matches = $this->data["message"];

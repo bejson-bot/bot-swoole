@@ -238,7 +238,7 @@ class IntegralGame extends ModBase
         }
 
         // 生成抢劫数量
-        $rand = rand(-50, 20);
+        $rand = rand(-50, 25);
 
         if ($rand  > 0) { // 抢劫成功
             // 先抢劫
@@ -269,7 +269,7 @@ class IntegralGame extends ModBase
                 -$rand
             );
 
-            // 尝试触发监狱加成
+            // 尝试触发监狱加成(禁言)
             $time = rand(-50, 100);
             if ($time > 0) {
                 // 设置禁言
@@ -281,13 +281,12 @@ class IntegralGame extends ModBase
 
                 // 创建消息
                 $msg = sprintf(
-                    '[抢劫] %s 试图抢劫 %s 的积分，不巧的是当场被警察抓获，损失了 %s 积分不说，还被狱友们轮流享用菊花。',
+                    '[抢劫] %s 试图抢劫 %s 的积分，当场被警察抓获，损失了 %s 积分不说，还被狱友们轮流享用菊花。',
                     CQ::at($this->data['user_id']),
                     CQ::at($aims['params']['qq']),
                     -$rand
                 );
             }
-
         }
 
         // 公布结果

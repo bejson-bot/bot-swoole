@@ -36,7 +36,7 @@ class Cache
      */
     static $reg_hooks = [];
 
-    static function get($name) { return self::$data[$name] ?? null; }
+    static function get($name, $default = null) { return self::$data[$name] ?? $default; }
 
     static function set($name, $value) { self::$data[$name] = $value; }
 
