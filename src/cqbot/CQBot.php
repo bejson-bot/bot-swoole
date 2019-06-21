@@ -66,15 +66,32 @@ class CQBot
         $matches = $this->data["message"];
         $types = []; // 运行的命令列表
         if ($this->data["message"]['0'] == '#') {
-            // 不管咋地 在群里 使用 # 开头就要扣分
-            if ($this->data['message_type'] == 'group') {
-                Integral::change($this->getRobotId(), $this->data['user_id'], -1, $this->data['group_id']);
-            }
             if (!preg_match($regex, $this->data["message"], $matches)) {
                 // 获取失败则作为 文本处理
                 $matches = $this->data["message"];
             } else {
                 $types[] = 'command';
+            }
+        }
+
+        // 不管咋地 在群里 使用 # 开头就要扣分
+        if ($this->data['message_type'] == 'group' && in_array('command', $types)) {
+            Integral::change($this->getRobotId(), $this->data['user_id'], -1, $this->data['group_id']);
+        }
+
+        // 如果设置的关闭就不回复了
+        $block_commands = ['开启', '关闭', 'reload'];
+        if (Cache::get('Core::BotClose', 0) > time()) {
+            // 还要判断 是不是 开启 关闭
+            if (!$this->isAdmin() && !(in_array('command', $types) && in_array($matches['cmd'], $block_commands))) {
+                return false;
+            }
+        }
+
+        // 如果是群里 还要判断这个群有没有关闭
+        if ($this->data['message_type'] == 'group' && Cache::get('Core::BotClose:' . $this->data['group_id'], 0) > time()) {
+            if (!$this->isAdmin() && !(in_array('command', $types) && in_array($matches['cmd'], $block_commands))) {
+                return false;
             }
         }
 
@@ -160,7 +177,8 @@ class CQBot
         return false;
     }
 
-    public function isAdmin($user) {
+    public function isAdmin($user = null) {
+        $user = $user ?? $this->data['user_id'];
         if (in_array($user, Cache::get("admin"))) return true;
         else return false;
     }
