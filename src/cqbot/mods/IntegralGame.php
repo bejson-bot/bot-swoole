@@ -281,7 +281,7 @@ class IntegralGame extends ModBase
 
                 // 创建消息
                 $msg = sprintf(
-                    '[抢劫] %s 试图抢劫 %s 的积分，不巧的是当场被警察抓获，损失了 %s 积分不说，还被狱友们爆了轮流享用菊花。',
+                    '[抢劫] %s 试图抢劫 %s 的积分，不巧的是当场被警察抓获，损失了 %s 积分不说，还被狱友们轮流享用菊花。',
                     CQ::at($this->data['user_id']),
                     CQ::at($aims['params']['qq']),
                     -$rand
