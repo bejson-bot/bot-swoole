@@ -77,75 +77,7 @@ class Help extends ModBase
      */
     public function closeBot($args): bool
     {
-        // 预先获取
-        $is_all = false;
-        $time = $args['0'] ?? '1天';
-
-        // 管理员逻辑特殊
-        if ($this->isAdmin()) {
-            // 关闭所有群
-            if (($args['0'] ?? '') == 'all' || ($args['1'] ?? '') == 'all') {
-                $is_all = true;
-            }
-        }
-
-        // 先尝试替换 年月日
-        $time = str_ireplace(['年', '月', '天', '时', '分'], [' year', ' month', 'day', ' hour', ' min'], $time);
-        $time = strtotime($time);
-        if ($time <= time()) {
-            $this->reply("[关闭机器人] 时间格式错误，不是正确的时间格式或不是未来时间\n正确格式: 2019-06-21 19:00 或者 1天");
-            return true;
-        }
-
-        // 如果不是管理员 就保存关闭时间再判断是否够三个人
-        $key = 'Core:BotClose:Vote:' . $this->data['group_id'];
-        if (!$this->isAdmin()) {
-            $default = ['type' => 'close', 'time' => time(), 'to_time' => $time,'users' => [], 'num' => 0]; // 默认数据
-            $info = Cache::get($key, $default);
-var_dump($info);
-            // 投票十分钟内有效
-            if (((time() - $info['time']) > 60 * 10)) {
-                echo "res\n";
-                $info = $default;
-            }
-
-            // 在列表里的就不能继续发起了
-            if (in_array($this->data['user_id'], $info['users'])) {
-                $this->reply(sprintf("[关闭机器人] %s 请等其他人投票。", CQ::at($this->data['user_id'])));
-                return true;
-            }
-
-            // 人数不够就加一继续
-            if ($info['num'] < 2) {
-                $info['num']++;
-                $info['users'][] = $this->data['user_id'];
-                Cache::set($key, $info);
-
-                $this->reply(sprintf(
-                    "[关闭机器人] %s 投票成功，当前支持 %s 的人数 %s / 3，共 %s 人。",
-                    CQ::at($this->data['user_id']),
-                    $info['type'] == 'close' ? '关闭' : '开启',
-                    $info['num'],
-                    count($info['users'])
-                ));
-                return true;
-            }
-
-            // 到这里说明 可以禁言了，清除记录
-            Cache::unset($key);
-            $time = $info['to_time'];
-        }
-
-        // 设置关闭
-        if ($is_all) {
-            Cache::set('Core::BotClose', $time);
-        } else {
-            Cache::set('Core::BotClose:' . $this->data['group_id'], $time);
-        }
-
-        $msg = sprintf("[关闭机器人] 好了，臣妾先行退下了");
-        $this->reply($msg);
-        return true;
+        return $this->changBotStatus($args, 'close');
     }
 
     /**
@@ -156,6 +88,8 @@ var_dump($info);
      */
     public function openBot($args): bool
     {
+        return $this->changBotStatus($args, 'open');
+
         // 预先获取
         $is_all = false;
 
@@ -215,6 +149,99 @@ var_dump($info);
         $this->reply($msg);
         return true;
     }
+
+    /**
+     * 修改机器人状态 开关
+     * @param array  $args
+     * @param string $status
+     * @return bool
+     */
+    private function changBotStatus(array $args, string $status): bool
+    {
+        // 预先获取
+        $is_all = false;
+        $time = $args['0'] ?? '1天';
+
+        // 管理员逻辑特殊
+        if ($this->isAdmin()) {
+            // 关闭所有群
+            if (($args['0'] ?? '') == 'all' || ($args['1'] ?? '') == 'all') {
+                $is_all = true;
+            }
+        }
+
+        // 先尝试替换 年月日
+        $time = str_ireplace(['年', '月', '天', '时', '分'], [' year', ' month', 'day', ' hour', ' min'], $time);
+        $time = strtotime($time);
+        if ($time <= time()) {
+            $this->reply("[关闭机器人] 时间格式错误，不是正确的时间格式或不是未来时间\n正确格式: 2019-06-21 19:00 或者 1天");
+            return true;
+        }
+
+        // 如果不是管理员 就保存关闭时间再判断是否够三个人
+        $key = 'Core:BotClose:Vote:' . $this->data['group_id'];
+        $info = [];
+        if (!$this->isAdmin()) {
+            $default = ['type' => $status, 'time' => time(), 'to_time' => $time,'users' => [], 'num' => 0]; // 默认数据
+            $info = Cache::get($key, $default);
+
+            // 投票十分钟内有效
+            if (((time() - $info['time']) > 60 * 10)) {
+                echo "res\n";
+                $info = $default;
+            }
+
+            // 在列表里的就不能继续发起了
+            if (in_array($this->data['user_id'], $info['users'])) {
+                $this->reply(sprintf("[关闭机器人] %s 请等其他人投票。", CQ::at($this->data['user_id'])));
+                return true;
+            }
+
+            // 人数不够就加一继续
+            if ($info['num'] < 2) {
+                $info['num']++;
+                $info['users'][] = $this->data['user_id'];
+                Cache::set($key, $info);
+
+                $this->reply(sprintf(
+                    "[关闭机器人] %s 投票成功，当前支持 %s 的人数 %s / 3，共 %s 人。",
+                    CQ::at($this->data['user_id']),
+                    $info['type'] == 'close' ? '关闭' : '开启',
+                    $info['num'],
+                    count($info['users'])
+                ));
+                return true;
+            }
+
+            // 到这里说明 可以修改了，清除记录
+            Cache::unset($key);
+            $time = $info['to_time'];
+        }
+
+        // 设置关闭
+        if ($is_all) {
+            if ($status == 'close') {
+                Cache::set('Core::BotClose', $time);
+                $msg = "[关闭机器人] 好了，臣妾先行退下了";
+            } else {
+                Cache::uet('Core::BotClose');
+                $msg = "[关闭机器人] 我想死你们啦~!!!";
+            }
+        } else {
+            if ($info['type'] == 'close') {
+                Cache::set('Core::BotClose:' . $this->data['group_id'], $time);
+                $msg = "[关闭机器人] 好了，臣妾先行退下了";
+            } else {
+                Cache::uet('Core::BotClose:' . $this->data['group_id']);
+                $msg = "[关闭机器人] 我想死你们啦~!!!";
+            }
+        }
+
+        $this->reply($msg);
+        return true;
+    }
+
+
 
     /**
      * 遍历模块 获取帮助说明
