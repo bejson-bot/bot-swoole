@@ -118,7 +118,7 @@ class Help extends ModBase
                 Cache::appendKey($key, 'num', ++$info['num']);
                 Cache::appendKey($key, 'users', ($info['users'][] = $this->data['user_id']));
                 $this->reply(sprintf(
-                    "[关闭机器人] %s 投票成功，当前支持 %s 的人数 %s/%s。",
+                    "[关闭机器人] %s 投票成功，当前支持 %s 的人数 %s / 3，共 %s 人。",
                     CQ::at($this->data['user_id']),
                     $info['type'] == 'close' ? '关闭' : '开启',
                     $info['num'],
@@ -186,7 +186,7 @@ class Help extends ModBase
                 Cache::appendKey($key, 'num', ++$info['num']);
                 Cache::appendKey($key, 'users', ($info['users'][] = $this->data['user_id']));
                 $this->reply(sprintf(
-                    "[关闭机器人] %s 投票成功，当前支持 %s 的人数 %s/%s。",
+                    "[关闭机器人] %s 投票成功，当前支持 %s 的人数 %s / 3，共 %s 人。",
                     CQ::at($this->data['user_id']),
                     $info['type'] == 'close' ? '关闭' : '开启',
                     $info['num'],
