@@ -83,14 +83,14 @@ class CQBot
         $block_commands = ['开启', '关闭', 'reload'];
         if (Cache::get('Core::BotClose', 0) > time()) {
             // 还要判断 是不是 开启 关闭
-            if (!$this->isAdmin() || !in_array('command', $types) || !in_array($matches['cmd'], $block_commands)) {
+            if (!$this->isAdmin() && !(in_array('command', $types) || in_array($matches['cmd'], $block_commands))) {
                 return false;
             }
         }
 
         // 如果是群里 还要判断这个群有没有关闭
         if ($this->data['message_type'] == 'group' && Cache::get('Core::BotClose:' . $this->data['group_id'], 0) > time()) {
-            if (!$this->isAdmin() || !in_array('command', $types) || !in_array($matches['cmd'], $block_commands)) {
+            if (!$this->isAdmin() && !(in_array('command', $types) || in_array($matches['cmd'], $block_commands))) {
                 return false;
             }
         }
