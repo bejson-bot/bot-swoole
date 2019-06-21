@@ -224,7 +224,7 @@ class Help extends ModBase
                 Cache::set('Core::BotClose', $time);
                 $msg = "[关闭机器人] 好了，臣妾先行退下了";
             } else {
-                Cache::uet('Core::BotClose');
+                Cache::unset('Core::BotClose');
                 $msg = "[关闭机器人] 我想死你们啦~!!!";
             }
         } else {
@@ -232,7 +232,7 @@ class Help extends ModBase
                 Cache::set('Core::BotClose:' . $this->data['group_id'], $time);
                 $msg = "[关闭机器人] 好了，臣妾先行退下了";
             } else {
-                Cache::uet('Core::BotClose:' . $this->data['group_id']);
+                Cache::unset('Core::BotClose:' . $this->data['group_id']);
                 $msg = "[关闭机器人] 我想死你们啦~!!!";
             }
         }
