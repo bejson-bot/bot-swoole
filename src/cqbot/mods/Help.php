@@ -98,12 +98,14 @@ class Help extends ModBase
         }
 
         // 如果不是管理员 就保存关闭时间再判断是否够三个人
-        $key = 'Core::BotClose:Vote' . $this->data['group_id'];
+        $key = 'Core:BotClose:Vote:' . $this->data['group_id'];
         if (!$this->isAdmin()) {
             $default = ['type' => 'close', 'time' => time(), 'to_time' => $time,'users' => [], 'num' => 0]; // 默认数据
             $info = Cache::get($key, $default);
+var_dump($info);
             // 投票十分钟内有效
             if (((time() - $info['time']) > 60 * 10)) {
+                echo "res\n";
                 $info = $default;
             }
 
@@ -115,9 +117,10 @@ class Help extends ModBase
 
             // 人数不够就加一继续
             if ($info['num'] < 2) {
-                Cache::appendKey($key, 'num', $info['num'] + 1);
+                $info['num']++;
                 $info['users'][] = $this->data['user_id'];
-                Cache::appendKey($key, 'users', $info['users']);
+                Cache::set($key, $info);
+
                 $this->reply(sprintf(
                     "[关闭机器人] %s 投票成功，当前支持 %s 的人数 %s / 3，共 %s 人。",
                     CQ::at($this->data['user_id']),
